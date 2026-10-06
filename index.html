@@ -2,12 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boulaqi Web-to-APK Studio Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Boulaqi APK Maker</title>
   <style>
     :root {
-      --bg: #070b14;
-      --card-bg: rgba(18, 26, 43, 0.85);
+      --bg: #090d16;
+      --card-bg: #131b2e;
       --card-border: rgba(0, 255, 204, 0.25);
       --neon-green: #00ffcc;
       --neon-cyan: #38bdf8;
@@ -25,267 +25,339 @@
       --text-muted: #64748b;
       --border: #e2e8f0;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; transition: 0.3s; }
 
-    header { background: var(--card-bg); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100; }
-    .brand { font-size: 1.3rem; font-weight: 900; color: var(--neon-green); }
-    .theme-toggle { background: var(--border); border: none; padding: 6px 14px; border-radius: 20px; color: var(--text); font-weight: bold; cursor: pointer; }
+    header { background: var(--card-bg); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .brand { font-size: 1.25rem; font-weight: 900; color: var(--neon-green); }
+    .theme-btn { background: var(--border); border: none; padding: 6px 12px; border-radius: 20px; color: var(--text); font-size: 0.8rem; font-weight: bold; cursor: pointer; }
 
-    .nav-tabs { display: flex; background: var(--card-bg); border-bottom: 1px solid var(--border); }
-    .nav-btn { flex: 1; padding: 14px 10px; background: none; border: none; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; }
-    .nav-btn.active { color: var(--neon-green); border-bottom-color: var(--neon-green); }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; z-index: 90; }
+    .nav-tab-btn { flex: 1; border: none; background: none; color: var(--text-muted); font-size: 0.82rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
+    .nav-tab-btn.active { color: var(--neon-green); }
 
-    .main-content { flex: 1; max-width: 900px; width: 100%; margin: 0 auto; padding: 20px 16px; }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
+    .container { flex: 1; padding: 16px; padding-bottom: 80px; overflow-y: auto; max-width: 500px; margin: 0 auto; width: 100%; }
 
-    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 18px; margin-bottom: 18px; }
-    .card h3 { font-size: 1rem; color: var(--neon-cyan); margin-bottom: 12px; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+    .card h3 { font-size: 1rem; color: var(--neon-cyan); margin-bottom: 10px; }
 
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
-    .input-field { width: 100%; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.06); border: 1px solid var(--card-border); color: var(--text); font-size: 0.9rem; }
-    textarea.input-field { height: 260px; font-family: monospace; resize: vertical; white-space: pre; direction: ltr; text-align: left; }
+    .hero-btn { width: 100%; height: 110px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--neon-green), #059669); color: #090d16; font-size: 1.25rem; font-weight: 900; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; box-shadow: 0 10px 25px -5px rgba(0, 255, 204, 0.3); }
+    .hero-btn span { font-size: 0.8rem; font-weight: normal; }
 
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media(max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+    /* نماذج الخطوات (Wizard) */
+    .step-modal { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 150; flex-direction: column; }
+    .step-modal.active { display: flex; }
+    .step-header { background: var(--card-bg); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .step-body { flex: 1; padding: 16px; overflow-y: auto; }
+    .step-footer { padding: 12px 16px; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; }
 
-    .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .input-group { margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; }
+    .input-box { width: 100%; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.08); border: 1px solid var(--card-border); color: var(--text); font-size: 0.9rem; }
+    textarea.input-box { height: 160px; font-family: monospace; resize: none; direction: ltr; }
+
+    .btn-step { flex: 1; padding: 13px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: bold; cursor: pointer; }
+    .btn-next { background: var(--neon-green); color: #090d16; }
+    .btn-prev { background: var(--border); color: var(--text); }
+
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
     .toggle-row:last-child { border-bottom: none; }
-    .toggle-switch { position: relative; width: 50px; height: 26px; }
+    .toggle-switch { position: relative; width: 46px; height: 24px; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; inset: 0; background: #94a3b8; border-radius: 34px; cursor: pointer; transition: 0.3s; }
-    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+    .slider { position: absolute; inset: 0; background: #64748b; border-radius: 34px; cursor: pointer; transition: 0.3s; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
     input:checked + .slider { background: var(--neon-green); }
-    input:checked + .slider:before { transform: translateX(24px); }
+    input:checked + .slider:before { transform: translateX(22px); }
 
-    .btn-action { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.1rem; font-weight: 900; cursor: pointer; color: #fff; background: linear-gradient(135deg, var(--neon-green), #059669); transition: 0.2s; margin-top: 10px; }
-    .btn-action:active { transform: scale(0.98); }
+    .img-preview { width: 60px; height: 60px; border-radius: 12px; border: 1px dashed var(--neon-cyan); display: flex; align-items: center; justify-content: center; overflow: hidden; background: rgba(255,255,255,0.05); margin-top: 6px; }
+    .img-preview img { width: 100%; height: 100%; object-fit: cover; }
 
-    .preview-box { width: 100%; height: 350px; border: 1px solid var(--card-border); border-radius: 12px; background: #fff; overflow: hidden; margin-top: 10px; }
-    iframe { width: 100%; height: 100%; border: none; }
+    /* سجل التطبيقات */
+    .history-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body data-theme="dark">
 
   <header>
-    <div class="brand">⚡ BOULAQI APK STUDIO</div>
-    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">☀️ نهاري</button>
+    <div class="brand">⚡ BOULAQI MAKER</div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ نهاري</button>
   </header>
 
-  <div class="nav-tabs">
-    <button class="nav-btn active" onclick="switchTab('codeTab', this)">💻 كود الويب</button>
-    <button class="nav-btn" onclick="switchTab('identityTab', this)">🎨 الهوية والمظهر</button>
-    <button class="nav-btn" onclick="switchTab('permissionsTab', this)">🔐 الصلاحيات والعرض</button>
-    <button class="nav-btn" onclick="switchTab('previewTab', this)">📱 المعاينة والتصدير</button>
+  <!-- الصفحة الرئيسية -->
+  <div class="container" id="homeView">
+    <div style="margin: 20px 0 25px; text-align: center;">
+      <h2 style="font-size: 1.3rem; margin-bottom: 6px;">محول الويب إلى تطبيق أندرويد</h2>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">حوّل ألعابك وصفحاتك إلى تطبيقات APK حقيقية بسهولة</p>
+    </div>
+
+    <button class="hero-btn" onclick="startAppWizard()">
+      ➕ إضافة تطبيق جديد
+      <span>بدء معالج تجهيز وبناء APK</span>
+    </button>
+
+    <div class="card" style="margin-top: 25px;">
+      <h3>⚡ آخر نشاط</h3>
+      <div id="quickRecentBox" style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 10px;">
+        لا توجد تطبيقات قيد البناء حالياً.
+      </div>
+    </div>
   </div>
 
-  <div class="main-content">
-    
-    <!-- تبويب الكود -->
-    <div id="codeTab" class="tab-pane active">
-      <div class="card">
-        <h3>1. إدخال كود المشروع (HTML + CSS + JS)</h3>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">اكتب الكود هنا مباشرة أو اختر ملف index.html من جهازك:</p>
-        <input type="file" id="fileImporter" accept=".html,.htm" onchange="importHtmlFile(event)" style="margin-bottom:12px;">
-        <textarea id="htmlCode" class="input-field" placeholder="ضع كود HTML/CSS/JS هنا..."></textarea>
+  <!-- صفحة السجل -->
+  <div class="container" id="historyView" style="display: none;">
+    <h3 style="color: var(--neon-cyan); margin-bottom: 14px;">📁 سجل التطبيقات المبنية</h3>
+    <div id="historyList">
+      <div style="text-align: center; color: var(--text-muted); padding: 30px;">السجل فارغ. أضف تطبيقك الأول الآن!</div>
+    </div>
+  </div>
+
+  <!-- الشريط السفلي للتنقل -->
+  <div class="bottom-nav">
+    <button class="nav-tab-btn active" id="tabHomeBtn" onclick="switchMainTab('home')">
+      <span>🏠</span>
+      الرئيسية
+    </button>
+    <button class="nav-tab-btn" id="tabHistoryBtn" onclick="switchMainTab('history')">
+      <span>📁</span>
+      السجل
+    </button>
+  </div>
+
+  <!-- معالج الخطوة 1: الهوية والمظهر -->
+  <div class="step-modal" id="step1">
+    <div class="step-header">
+      <h4>الخطوة 1 من 3: هوية التطبيق واللوجو</h4>
+      <button onclick="closeWizard()" style="background:none; border:none; color:var(--text); font-size:1.2rem;">✕</button>
+    </div>
+    <div class="step-body">
+      <div class="input-group">
+        <label>اسم التطبيق في الهاتف:</label>
+        <input type="text" id="wizAppName" class="input-box" placeholder="مثال: دبابات البولاقي">
+      </div>
+      <div class="input-group">
+        <label>رقم الإصدار (Version):</label>
+        <input type="text" id="wizVersion" class="input-box" value="1.0.0">
+      </div>
+      <div class="input-group">
+        <label>لوجو التطبيق (أيقونة الهاتف):</label>
+        <input type="file" id="wizLogoFile" accept="image/*" onchange="previewImage(event, 'logoPreview')">
+        <div class="img-preview" id="logoPreview">🖼️</div>
+      </div>
+      <div class="input-group">
+        <label>صورة صفحة البداية (Splash Screen):</label>
+        <input type="file" id="wizSplashFile" accept="image/*" onchange="previewImage(event, 'splashPreview')">
+        <div class="img-preview" id="splashPreview">📱</div>
       </div>
     </div>
+    <div class="step-footer">
+      <button class="btn-step btn-next" onclick="goToStep(2)">التالي: كود الويب ⬅</button>
+    </div>
+  </div>
 
-    <!-- تبويب الهوية والمظهر -->
-    <div id="identityTab" class="tab-pane">
-      <div class="card">
-        <h3>2. بيانات هوية التطبيق واللوجو</h3>
-        <div class="grid-2">
-          <div class="form-group">
-            <label>اسم التطبيق في الهاتف (App Name):</label>
-            <input type="text" id="appName" class="input-field" value="تطبيقي الرائع">
-          </div>
-          <div class="form-group">
-            <label>معرّف الحزمة (Package ID):</label>
-            <input type="text" id="packageId" class="input-field" value="com.boulaqi.app">
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label>رقم الإصدار (Version):</label>
-            <input type="text" id="appVersion" class="input-field" value="1.0.0">
-          </div>
-          <div class="form-group">
-            <label>لون شاشة البداية (Splash Background):</label>
-            <input type="color" id="splashColor" class="input-field" value="#070b14" style="height:45px; padding:4px;">
-          </div>
-        </div>
+  <!-- معالج الخطوة 2: كود HTML -->
+  <div class="step-modal" id="step2">
+    <div class="step-header">
+      <h4>الخطوة 2 من 3: كود HTML</h4>
+      <button onclick="closeWizard()" style="background:none; border:none; color:var(--text); font-size:1.2rem;">✕</button>
+    </div>
+    <div class="step-body">
+      <div class="input-group">
+        <label>الخيار الأول: رفع ملف index.html جاهز</label>
+        <input type="file" id="wizHtmlFile" accept=".html,.htm" onchange="loadHtmlFile(event)">
+      </div>
+      <div style="text-align: center; margin: 10px 0; color: var(--text-muted); font-size: 0.8rem;">— أو —</div>
+      <div class="input-group">
+        <label>الخيار الثاني: لصق الكود مباشرة</label>
+        <textarea id="wizHtmlCode" class="input-box" placeholder="ضع كود HTML + CSS + JS هنا..."></textarea>
       </div>
     </div>
+    <div class="step-footer">
+      <button class="btn-step btn-prev" onclick="goToStep(1)">السابق</button>
+      <button class="btn-step btn-next" onclick="goToStep(3)">التالي: الإعدادات ⬅</button>
+    </div>
+  </div>
 
-    <!-- تبويب الصلاحيات والعرض -->
-    <div id="permissionsTab" class="tab-pane">
+  <!-- معالج الخطوة 3: الإعدادات وبناء الـ APK -->
+  <div class="step-modal" id="step3">
+    <div class="step-header">
+      <h4>الخطوة 3 من 3: الإعدادات وبناء الـ APK</h4>
+      <button onclick="closeWizard()" style="background:none; border:none; color:var(--text); font-size:1.2rem;">✕</button>
+    </div>
+    <div class="step-body">
       <div class="card">
-        <h3>3. إعدادات الشاشة والأداء</h3>
-        <div class="form-group">
-          <label>اتجاه عرض الشاشة (Screen Orientation):</label>
-          <select id="screenOrientation" class="input-field">
+        <h3>شكل الشاشة والعرض</h3>
+        <div class="input-group">
+          <label>اتجاه الشاشة:</label>
+          <select id="wizOrientation" class="input-box">
             <option value="portrait">عمودي (Portrait) - للمواقع والتطبيقات</option>
             <option value="landscape">أفقي (Landscape) - للألعاب والسباقات</option>
-            <option value="sensor">دوران تلقائي (Auto-Rotate)</option>
+            <option value="sensor">دوران تلقائي</option>
           </select>
         </div>
         <div class="toggle-row">
           <div>
-            <b>وضع ملء الشاشة الكامل (Immersive Fullscreen)</b>
-            <div style="font-size:0.75rem; color:var(--text-muted);">إخفاء شريط الإشعارات وأزرار الهاتف لتشغيل اللعبة كشاشة كاملة</div>
+            <b>شاشة كاملة بدون أشرطة (Fullscreen)</b>
+            <div style="font-size:0.75rem; color:var(--text-muted);">إخفاء شريط الإشعارات لتجربة ألعاب متميزة</div>
           </div>
           <label class="toggle-switch">
-            <input type="checkbox" id="fullscreenToggle" checked>
+            <input type="checkbox" id="wizFullscreen" checked>
             <span class="slider"></span>
           </label>
         </div>
       </div>
 
       <div class="card">
-        <h3>4. الصلاحيات الرسمية (Permissions)</h3>
+        <h3>أذونات وصلاحيات الهاتف</h3>
         <div class="toggle-row">
-          <div>
-            <b>صلاحية الكاميرا (Camera)</b>
-            <div style="font-size:0.75rem; color:var(--text-muted);">android.permission.CAMERA</div>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="permCamera">
-            <span class="slider"></span>
-          </label>
+          <span>📷 إذن الكاميرا</span>
+          <label class="toggle-switch"><input type="checkbox" id="permCam"><span class="slider"></span></label>
         </div>
         <div class="toggle-row">
-          <div>
-            <b>صلاحية الملفات والذاكرة (Storage)</b>
-            <div style="font-size:0.75rem; color:var(--text-muted);">android.permission.READ/WRITE_EXTERNAL_STORAGE</div>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="permStorage" checked>
-            <span class="slider"></span>
-          </label>
+          <span>📁 إذن الملفات والتخزين</span>
+          <label class="toggle-switch"><input type="checkbox" id="permStore" checked><span class="slider"></span></label>
         </div>
         <div class="toggle-row">
-          <div>
-            <b>صلاحية الموقع الجغرافي (GPS)</b>
-            <div style="font-size:0.75rem; color:var(--text-muted);">android.permission.ACCESS_FINE_LOCATION</div>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="permLocation">
-            <span class="slider"></span>
-          </label>
+          <span>📍 إذن الموقع الجغرافي (GPS)</span>
+          <label class="toggle-switch"><input type="checkbox" id="permGps"><span class="slider"></span></label>
         </div>
         <div class="toggle-row">
-          <div>
-            <b>منع الشاشة من الإغلاق أثناء اللعب (Keep Screen Awake)</b>
-            <div style="font-size:0.75rem; color:var(--text-muted);">WAKE_LOCK لضمان عدم توقف اللعبة</div>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="permWakeLock" checked>
-            <span class="slider"></span>
-          </label>
+          <span>⚡ منع إغلاق الشاشة أثناء اللعب</span>
+          <label class="toggle-switch"><input type="checkbox" id="permWake" checked><span class="slider"></span></label>
         </div>
       </div>
     </div>
-
-    <!-- تبويب المعاينة والتصدير -->
-    <div id="previewTab" class="tab-pane">
-      <div class="card">
-        <h3>5. معاينة تشغيل الكود المباشر</h3>
-        <button onclick="refreshPreview()" style="padding:6px 12px; background:var(--neon-cyan); border:none; border-radius:8px; font-weight:bold; cursor:pointer;">تحديث المعاينة 🔄</button>
-        <div class="preview-box">
-          <iframe id="previewFrame"></iframe>
-        </div>
-      </div>
-
-      <div class="card" style="text-align:center;">
-        <h3>جاهز للبناء والتصدير</h3>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">سيتم تجميع كل الإعدادات والأكواد لبناء ملف APK مخصص بالكامل</p>
-        <button class="btn-action" onclick="exportAppConfig()">🚀 تصدير إعدادات التطبيق للبناء</button>
-      </div>
+    <div class="step-footer">
+      <button class="btn-step btn-prev" onclick="goToStep(2)">السابق</button>
+      <button class="btn-step btn-next" style="background:linear-gradient(135deg, var(--neon-cyan), #0284c7); color:#fff;" onclick="finishAndBuildApk()">🚀 بناء APK وتحميل</button>
     </div>
-
   </div>
 
   <script>
+    let appHistory = JSON.parse(localStorage.getItem("boulaqi_apk_history") || "[]");
+
     function toggleTheme() {
       const isDark = document.body.getAttribute("data-theme") === "dark";
       document.body.setAttribute("data-theme", isDark ? "light" : "dark");
       document.getElementById("themeBtn").innerText = isDark ? "🌙 ليلي" : "☀️ نهاري";
     }
 
-    function switchTab(tabId, btn) {
-      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
-      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-      document.getElementById(tabId).classList.add("active");
-      btn.classList.add("active");
-      if (tabId === "previewTab") refreshPreview();
+    function switchMainTab(tab) {
+      if (tab === 'home') {
+        document.getElementById("homeView").style.display = "block";
+        document.getElementById("historyView").style.display = "none";
+        document.getElementById("tabHomeBtn").classList.add("active");
+        document.getElementById("tabHistoryBtn").classList.remove("active");
+      } else {
+        document.getElementById("homeView").style.display = "none";
+        document.getElementById("historyView").style.display = "block";
+        document.getElementById("tabHomeBtn").classList.remove("active");
+        document.getElementById("tabHistoryBtn").classList.add("active");
+        renderHistory();
+      }
     }
 
-    function importHtmlFile(e) {
-      const file = e.target.files[0];
+    function startAppWizard() {
+      goToStep(1);
+    }
+
+    function closeWizard() {
+      document.querySelectorAll(".step-modal").forEach(m => m.classList.remove("active"));
+    }
+
+    function goToStep(num) {
+      document.querySelectorAll(".step-modal").forEach(m => m.classList.remove("active"));
+      document.getElementById("step" + num).classList.add("active");
+    }
+
+    function previewImage(event, boxId) {
+      const file = event.target.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = function(evt) {
-          document.getElementById("htmlCode").value = evt.target.result;
-          alert("تم استيراد كود الملف بنجاح!");
+        reader.onload = e => {
+          document.getElementById(boxId).innerHTML = `<img src="${e.target.result}">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function loadHtmlFile(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          document.getElementById("wizHtmlCode").value = e.target.result;
+          alert("تم استيراد كود الـ HTML بنجاح!");
         };
         reader.readAsText(file);
       }
     }
 
-    function refreshPreview() {
-      const code = document.getElementById("htmlCode").value;
-      const frame = document.getElementById("previewFrame");
-      frame.srcdoc = code || "<h3 style='font-family:sans-serif;text-align:center;padding-top:40px;'>ضع كود HTML لتتم معاينته هنا</h3>";
-    }
+    function finishAndBuildApk() {
+      const name = document.getElementById("wizAppName").value.trim() || "تطبيقي";
+      const ver = document.getElementById("wizVersion").value.trim() || "1.0.0";
+      const orientation = document.getElementById("wizOrientation").value;
+      const code = document.getElementById("wizHtmlCode").value;
 
-    function exportAppConfig() {
-      const config = {
-        appName: document.getElementById("appName").value,
-        packageId: document.getElementById("packageId").value,
-        version: document.getElementById("appVersion").value,
-        orientation: document.getElementById("screenOrientation").value,
-        fullscreen: document.getElementById("fullscreenToggle").checked,
-        permissions: {
-          camera: document.getElementById("permCamera").checked,
-          storage: document.getElementById("permStorage").checked,
-          location: document.getElementById("permLocation").checked,
-          wakeLock: document.getElementById("permWakeLock").checked
-        }
+      if (!code) {
+        alert("يرجى وضع كود الـ HTML في الخطوة 2 أولاً!");
+        goToStep(2);
+        return;
+      }
+
+      // إضافة للتاريخ والسجل
+      const newEntry = {
+        name: name,
+        version: ver,
+        orientation: orientation,
+        date: new Date().toLocaleDateString('ar-EG'),
+        time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
       };
-      
-      const jsonStr = JSON.stringify(config, null, 2);
-      const blob = new Blob([jsonStr], { type: "application/json" });
+      appHistory.unshift(newEntry);
+      localStorage.setItem("boulaqi_apk_history", JSON.stringify(appHistory));
+
+      // تصدير ملف الإعدادات
+      const blob = new Blob([code], { type: "text/html" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "app-config.json";
+      a.download = "index.html";
       a.click();
-      alert("تم استخراج ملف إعدادات التطبيق (app-config.json)! احفظ التغييرات في المستودع ليبدأ GitHub Actions البناء فوراً.");
+
+      closeWizard();
+      switchMainTab('history');
+      alert(`✅ تم تجهيز كود (${name}) وحفظه في السجل بنجاح!\n\nارفعه في مستودع GitHub وسيقوم Workflow ببناء ملف الـ APK فوراً.`);
     }
 
-    // كود افتراضي للبدء السريع
-    window.onload = function() {
-      document.getElementById("htmlCode").value = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Boulaqi Demo</title>
-  <style>
-    body { background: #0b1120; color: #00ffcc; text-align: center; padding: 40px 15px; font-family: sans-serif; }
-    h1 { font-size: 1.8rem; margin-bottom: 10px; }
-    button { padding: 14px 28px; font-size: 1rem; font-weight: bold; background: #00ffcc; color: #0b1120; border: none; border-radius: 12px; cursor: pointer; }
-  </style>
-</head>
-<body>
-  <h1>تطبيقي تم بناؤه بنجاح! 🚀</h1>
-  <p>يعمل بكامل تسريع الرسوميات والصلاحيات المختارة.</p>
-  <br>
-  <button onclick="alert('مبروك، التطبيق يعمل بنسبة 100%!')">اضغط للتجربة</button>
-</body>
-</html>`;
-      refreshPreview();
+    function renderHistory() {
+      const box = document.getElementById("historyList");
+      if (appHistory.length === 0) {
+        box.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:30px;">السجل فارغ حالياً.</div>`;
+        return;
+      }
+      box.innerHTML = "";
+      appHistory.forEach((item, idx) => {
+        const row = document.createElement("div");
+        row.className = "history-item";
+        row.innerHTML = `
+          <div>
+            <b>${item.name}</b> <span style="font-size:0.75rem; color:var(--neon-green);">v${item.version}</span>
+            <div style="font-size:0.72rem; color:var(--text-muted);">${item.date} - ${item.time} | وضع: ${item.orientation}</div>
+          </div>
+          <button style="background:var(--card-border); color:var(--text); border:none; padding:6px 10px; border-radius:8px; font-size:0.8rem; cursor:pointer;" onclick="deleteHistoryItem(${idx})">حذف 🗑️</button>
+        `;
+        box.appendChild(row);
+      });
+    }
+
+    function deleteHistoryItem(idx) {
+      appHistory.splice(idx, 1);
+      localStorage.setItem("boulaqi_apk_history", JSON.stringify(appHistory));
+      renderHistory();
+    }
+
+    window.onload = () => {
+      if (appHistory.length > 0) {
+        document.getElementById("quickRecentBox").innerText = `آخر تطبيق: ${appHistory[0].name} (v${appHistory[0].version})`;
+      }
     };
   </script>
 </body>
